@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <style type="text/css">
+      body {
+        color: white;
+        background-color: #000000;
+        font-family: "Courier New";
+      }
+    </style>
+  </head>
+  <body>
+  {{.Res}}
+  {{ range .Datas }}
+    {{ . | html }}<br>
+  {{ end }}
+  </body>
+</html>

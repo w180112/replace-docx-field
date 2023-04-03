@@ -1,4 +1,4 @@
-module github.com/w180112/pod-exposer
+module github.com/w180112/docx-replacer
 
 go 1.17
 

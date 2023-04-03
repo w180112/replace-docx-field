@@ -1,7 +1,19 @@
 <html>
-    {{ range $book := .books }}
-    <h1>{{ .Title }}</h1>
-    <h3>{{ .Author }}</h3>
-    <hr/>
-    {{ end }}
+  <head>
+    <style type="text/css">
+      body {
+        color: white;
+        background-color: #000000
+      }
+    </style>
+    <span style="font-size: 1.5rem;">
+  </head>
+  <body>
+    <th style="text-align: center"><b>docx table field replacer</b></th>
+    <pre>
+    <form action="/docx/upload/" enctype="multipart/form-data" method="POST"> 
+    <input type="file" name="file" accept="*" /> <button type="submit">submit </button>
+    </form>
+    </pre>
+  </body>
 </html>
