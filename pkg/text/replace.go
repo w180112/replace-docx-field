@@ -1,6 +1,8 @@
 package text
 
 import (
+	"fmt"
+
 	docx "baliance.com/gooxml/document"
 	"github.com/sirupsen/logrus"
 )
@@ -43,16 +45,25 @@ func FindAndReplace(inputFile string, outputFile string) error {
 		}
 	}
 	for _, p := range paragraphs {
-		for _, r := range p.Runs() {
-			nameV, ok := nameKV[r.Text()]
-			if ok {
-				r.ClearContent()
-				r.AddText(nameV)
+		fmt.Println("123")
+		characterName := ""
+		runs := p.Runs()
+		for i := 0; i < len(runs); i++ {
+			characterName += runs[i].Text()
+			fmt.Println(runs[i].Text())
+			if i > 0 {
+				runs[i].ClearContent()
 			}
+		}
+		fmt.Println(characterName)
+		nameV, ok := nameKV[characterName]
+		if ok {
+			runs[0].ClearContent()
+			runs[0].AddText(nameV)
 		}
 	}
 
-	doc.SaveToFile("/home/the/Downloads/edit-test.docx")
+	doc.SaveToFile(outputFile)
 
 	return nil
 }
@@ -67,14 +78,23 @@ func getNameKV(table docx.Table) map[string]string {
 		for j := 0; j < len(cell0Paras) && j < len(cell1Paras); j++ {
 			cell0Runs := cell0Paras[j].Runs()
 			cell1Runs := cell1Paras[j].Runs()
-			for k := 0; k < len(cell0Runs) && k < len(cell1Runs); k++ {
+			for k := 0; k < len(cell0Runs); k++ {
 				if cell0Runs[k].Text() == "" {
 					continue
 				}
-				nameKV[cell1Runs[k].Text()] = cell0Runs[k].Text()
+				oriStr := ""
+				for l := 0; l < len(cell1Runs); l++ {
+					oriStr += cell1Runs[l].Text()
+				}
+				_, ok := nameKV[oriStr]
+				if !ok {
+					nameKV[oriStr] = cell0Runs[k].Text()
+				}
 			}
 		}
 	}
+
+	fmt.Println(nameKV)
 
 	return nameKV
 }
