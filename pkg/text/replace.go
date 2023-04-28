@@ -45,17 +45,14 @@ func FindAndReplace(inputFile string, outputFile string) error {
 		}
 	}
 	for _, p := range paragraphs {
-		fmt.Println("123")
 		characterName := ""
 		runs := p.Runs()
 		for i := 0; i < len(runs); i++ {
 			characterName += runs[i].Text()
-			fmt.Println(runs[i].Text())
-			if i > 0 {
+			/*if i > 0 {
 				runs[i].ClearContent()
-			}
+			}*/
 		}
-		fmt.Println(characterName)
 		nameV, ok := nameKV[characterName]
 		if ok {
 			runs[0].ClearContent()

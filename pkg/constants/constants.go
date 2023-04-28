@@ -1,6 +1,6 @@
 package constants
 
 const (
-	DocxFilePath      = "/home/the/Documents/docx-replacer/"
-	HTTPAPIListenPort = 8080
+	DocxFilePath      = "/root/replace-docx-field/docx-replacer/"
+	HTTPAPIListenPort = 443
 )

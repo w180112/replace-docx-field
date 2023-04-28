@@ -3,9 +3,10 @@ package web
 import (
 	"fmt"
 	"io"
-	"net"
+	//"net"
 	"net/http"
 	"net/url"
+	"github.com/unrolled/secure"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,14 +19,30 @@ import (
 
 var r *gin.Engine
 
+func tlsHandler(port int) gin.HandlerFunc {
+    return func(c *gin.Context) {
+	secureMiddleware := secure.New(secure.Options{
+	    SSLRedirect: true,
+	    SSLHost:     fmt.Sprintf(":%d", constants.HTTPAPIListenPort),
+	})
+	err := secureMiddleware.Process(c.Writer, c.Request)
+
+	if err != nil {
+	    return
+	}
+
+	c.Next()
+    }
+}
+
 func HttpServer(htmlTemplatePath string) {
-	httpAPIListener, err := net.Listen("tcp", fmt.Sprintf(":%d", constants.HTTPAPIListenPort))
+	/*httpAPIListener, err := net.Listen("tcp", fmt.Sprintf(":%d", constants.HTTPAPIListenPort))
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to listen on http api %d", constants.HTTPAPIListenPort)
 	}
 	defer func() {
 		_ = httpAPIListener.Close()
-	}()
+	}()*/
 	r = gin.Default()
 	r.LoadHTMLGlob(htmlTemplatePath)
 	r.GET("/", func(c *gin.Context) {
@@ -37,10 +54,18 @@ func HttpServer(htmlTemplatePath string) {
 	// on windows "localhost:8080"
 	// can be overriden with the PORT env var
 
-	err = r.RunListener(httpAPIListener)
+	/*err = r.RunListener(httpAPIListener)
 	if err != nil {
 		logrus.WithError(err).Fatalf("Failed to run http server")
+	}*/
+	path, err := os.Getwd()
+	if err != nil {
+		logrus.WithError(err).Error("get pwd failed")
+		return
 	}
+	fmt.Printf("pwd = %s\n", path)
+	r.Use(tlsHandler(constants.HTTPAPIListenPort))
+        r.RunTLS(fmt.Sprintf(":%d", constants.HTTPAPIListenPort), filepath.Join(path, "certs/server.crt"), filepath.Join(path, "certs/server.key"))
 }
 
 func UploadDocx(c *gin.Context) {
