@@ -2,6 +2,7 @@ package text
 
 import (
 	"fmt"
+	"strings"
 
 	docx "baliance.com/gooxml/document"
 	"github.com/sirupsen/logrus"
@@ -16,16 +17,71 @@ func FindAndReplace(inputFile string, outputFile string) error {
 		return err
 	}
 
-	/*paragraphs := []docx.Paragraph{}
-	for _, p := range doc.Paragraphs() {
-		paragraphs = append(paragraphs, p)
-	}
+	parseTimeCode(doc, outputFile)
+	//findAndReplaceNamesInTables(doc, outputFile)
 
-	for _, p := range paragraphs {
-		for _, r := range p.Runs() {
-			fmt.Println(r.Text())
+	return nil
+}
+
+func parseTimeCode(doc *docx.Document, outputFile string) {
+	newDocx := docx.New()
+	//paragraphs := []docx.Paragraph{}
+	tables := doc.Tables()
+	for i := 0; i < len(tables); i++ {
+		rows := tables[i].Rows()
+		for i := 0; i < len(rows); i++ {
+			if i == 0 {
+				oriStr := ""
+				cells := rows[0].Cells()
+				cell0Paras := cells[0].Paragraphs()
+				for j := 0; j < len(cell0Paras); j++ {
+					cell0Runs := cell0Paras[j].Runs()
+					for k := 0; k < len(cell0Runs); k++ {
+						if cell0Runs[k].Text() == "" {
+							continue
+						}
+						oriStr = attachRuns(cell0Runs)
+					}
+				}
+				if !strings.Contains(oriStr, "TIME CODE") {
+					break
+				}
+				continue
+			}
+			cells := rows[i].Cells()
+			cell0Paras := cells[0].Paragraphs()
+			if len(cells) < 3 {
+				break
+			}
+			//cell2Paras := cells[2].Paragraphs()
+			for j := 0; j < len(cell0Paras); j++ {
+				cell0Runs := cell0Paras[j].Runs()
+				//cell2Runs := cell2Paras[j].Runs()
+				oriTimeCode := attachRuns(cell0Runs)
+				if oriTimeCode == "" /* || cell2Runs[k].Text() == "" */ {
+					continue
+				}
+				newTimeCodes := strings.Split(oriTimeCode, ":")
+				newTimeCode := newTimeCodes[1] + newTimeCodes[2]
+				fmt.Println(newTimeCode)
+				para := newDocx.AddParagraph()
+				run := para.AddRun()
+				run.AddText(newTimeCode)
+			}
 		}
-	}*/
+	}
+	newDocx.SaveToFile(outputFile)
+}
+
+func attachRuns(cellRuns []docx.Run) string {
+	oriStr := ""
+	for l := 0; l < len(cellRuns); l++ {
+		oriStr += cellRuns[l].Text()
+	}
+	return oriStr
+}
+
+func findAndReplaceNamesInTables(doc *docx.Document, outputFile string) {
 	var nameKV map[string]string
 
 	paragraphs := []docx.Paragraph{}
@@ -39,9 +95,7 @@ func FindAndReplace(inputFile string, outputFile string) error {
 		rows := tables[i].Rows()
 		for j := 0; j < len(rows); j++ {
 			cells := rows[j].Cells()
-			for _, p := range cells[0].Paragraphs() {
-				paragraphs = append(paragraphs, p)
-			}
+			paragraphs = append(paragraphs, cells[0].Paragraphs()...)
 		}
 	}
 	for _, p := range paragraphs {
@@ -61,8 +115,6 @@ func FindAndReplace(inputFile string, outputFile string) error {
 	}
 
 	doc.SaveToFile(outputFile)
-
-	return nil
 }
 
 func getNameKV(table docx.Table) map[string]string {
@@ -79,10 +131,7 @@ func getNameKV(table docx.Table) map[string]string {
 				if cell0Runs[k].Text() == "" {
 					continue
 				}
-				oriStr := ""
-				for l := 0; l < len(cell1Runs); l++ {
-					oriStr += cell1Runs[l].Text()
-				}
+				oriStr := attachRuns(cell1Runs)
 				_, ok := nameKV[oriStr]
 				if !ok {
 					nameKV[oriStr] = cell0Runs[k].Text()

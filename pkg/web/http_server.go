@@ -3,13 +3,15 @@ package web
 import (
 	"fmt"
 	"io"
+
 	//"net"
 	"net/http"
 	"net/url"
-	"github.com/unrolled/secure"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/unrolled/secure"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -20,19 +22,19 @@ import (
 var r *gin.Engine
 
 func tlsHandler(port int) gin.HandlerFunc {
-    return func(c *gin.Context) {
-	secureMiddleware := secure.New(secure.Options{
-	    SSLRedirect: true,
-	    SSLHost:     fmt.Sprintf(":%d", constants.HTTPAPIListenPort),
-	})
-	err := secureMiddleware.Process(c.Writer, c.Request)
+	return func(c *gin.Context) {
+		secureMiddleware := secure.New(secure.Options{
+			SSLRedirect: true,
+			SSLHost:     fmt.Sprintf(":%d", constants.HTTPAPIListenPort),
+		})
+		err := secureMiddleware.Process(c.Writer, c.Request)
 
-	if err != nil {
-	    return
+		if err != nil {
+			return
+		}
+
+		c.Next()
 	}
-
-	c.Next()
-    }
 }
 
 func HttpServer(htmlTemplatePath string) {
@@ -65,7 +67,7 @@ func HttpServer(htmlTemplatePath string) {
 	}
 	fmt.Printf("pwd = %s\n", path)
 	r.Use(tlsHandler(constants.HTTPAPIListenPort))
-        r.RunTLS(fmt.Sprintf(":%d", constants.HTTPAPIListenPort), filepath.Join(path, "certs/server.crt"), filepath.Join(path, "certs/server.key"))
+	r.RunTLS(fmt.Sprintf(":%d", constants.HTTPAPIListenPort), filepath.Join(path, "certs/server.crt"), filepath.Join(path, "certs/server.key"))
 }
 
 func UploadDocx(c *gin.Context) {
